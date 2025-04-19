@@ -1,0 +1,52 @@
+ID,Questions ,Answer
+1,"Is ""OOP"" a method for thinking about the structure of programs?",Yes
+2,Is the Design Pattern First methodology based on three main principles?,No
+3,Can you have more than one volume of a series?,Yes
+4,Does the book teach any language?,No
+5,"Does the term ?dia-logos? mean ?through the language""?",Yes
+6,Is knowing the object programming more important than statements and functions?,Yes
+7,Is BlueJ an IDE?,Yes
+8,Are examples and animations made out in a top professional quality?,Yes
+9,Does Object Oriented Programming write about 1000 statements and functions?,No
+10,In autographical form of writing the author speaks about himself and what he noticed first time in textbook?,Yes
+11,Is static alloceating memory in stack available?,No
+12,Are the presentation concept used to rush things in textbook?,No
+13,Are all examples functioning only in Linux?,No
+14,"Are Object, BlueJ and JDK necessary tolls to use this book?",Yes
+15,Does this version not include an explanation concerning the inheritance of implementation ?,Yes
+16,You can follow the explanation thread much easily?,Yes
+17,All is functioning in Windows as well an in Linux?,Yes
+18,Does the @Override annotation required an implementation?,Yes
+19,Can you make a compilation with the command File -> Reopen ?,No
+20,Is it normal that animation is not discussed in the textbook but it's placed at the animation?,Yes
+21,Can You see the @Override on the left side?,No
+22,Is it possible to create a game where cars use OOP programming?,Yes
+23,"You can see the relations among separate parts of the program, it means that the program is independent?",No
+24,Can the class rectangle be caught by a mouse and drawn to another place?,Yes
+25,Is the author afraid to present a question?,No
+26,Is the book written in czech?,"	I don't know"
+27,You cannot create a canvas that would have a sound?,I don't know
+28,Is the main idea of OOP to write hundreds of statements and functions?,No
+29,Can the first project be created in 15 minutes?,I don't know
+30,Is the first project of the book named Hello World?,No
+31,Are draft patterns temporary phenomenon?,No
+32,Is muCommander written in C++?,No
+33,Is it a good approach to skip knowing the names of a field and its types?,No
+34,Does UML have 12 diagrams?,No
+35,Do messages sent to a class divided into one part?,No
+36,Can You create a new instance with default color and dimensions?,Yes
+37,Are the @Override Annotations necessary?,No
+38,Can the term object oriented be sometimes replaced by an abbreviation O0?,Yes
+39,Can You create a non-BlueJ project with the BlueJ environment?,Yes
+40,Can objects send messages to each other?,Yes
+41,Does the Interface hide what is going on?,Yes
+42,You can follow the explanation thread much easily with the form of the a dialogue?,Yes
+43,Is this book a serial on the Sun company pages?,Yes
+44,Does this book talk about the @Override Annotation on section 20?,No
+45,All is functioning in Windows and Linux?,Yes
+46,Can you find a lot of Czech textbooks of programming?,No
+47,Can you find relations among separate parts of the program?,Yes
+48,The object oriented programming is far close to current man's way of thinking?,Yes
+49,Can the name of the method change the method's definition?,No
+50,Are all IDE's bad in teaching OOP?,No
+51,The book is ambitious and CANNOT be mastered?,No

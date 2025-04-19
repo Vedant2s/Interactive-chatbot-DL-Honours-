@@ -1,0 +1,148 @@
+import os
+import time
+import re  # Import regex for stripping out <think>...</think>
+from datasets import load_dataset
+from populate_database import add_to_chroma
+from query_data import query_rag
+from langchain.schema.document import Document
+from langchain_ollama import ChatOllama
+from get_embedding_function import get_embedding_function
+
+# Print environment variable values for debugging
+print("LANGSMITH_API_KEY:", os.environ.get("LANGSMITH_API_KEY"))
+print("LANGSMITH_ENDPOINT:", os.environ.get("LANGSMITH_ENDPOINT"))
+print("LANGSMITH_PROJECT:", os.environ.get("LANGSMITH_PROJECT"))
+
+# Load the dataset
+ds_qa = load_dataset("rag-datasets/rag-mini-wikipedia", "question-answer", split="test")
+ds_corpus = load_dataset("rag-datasets/rag-mini-wikipedia", "text-corpus", split="passages")
+
+# Your LLM and embedding function remain unchanged.
+llm_model = ChatOllama(model="deepseek-r1:1.5b", temperature=0)
+local_embeddings = get_embedding_function()
+
+# Prepare the documents for Chroma using all records
+documents = [
+    Document(page_content=passage, metadata={"id": str(idx)})
+    for idx, passage in enumerate(ds_corpus["passage"])
+]
+add_to_chroma(documents)  # Add documents to Chroma
+
+# Evaluation parameters
+total_questions = 10  # Number of questions to evaluate
+local_dataset = []
+total_response_time = 0
+
+# # Evaluate the dataset locally
+# for idx, (question, answer) in enumerate(
+#     zip(ds_qa["question"][:total_questions], ds_qa["answer"][:total_questions])
+# ):
+#     start_time = time.time()
+    
+#     # Query RAG (ensure query_rag returns both response and retrieved contexts)
+#     predicted_answer, retrieved_contexts = query_rag(question)
+    
+#     end_time = time.time()
+#     response_time = end_time - start_time
+#     total_response_time += response_time
+
+#     print(f"{idx+1}/{total_questions} - Response Time: {response_time:.2f} seconds")
+
+#     # Store evaluation data locally
+#     local_dataset.append({
+#         "question": question,
+#         "retrieved_contexts": retrieved_contexts,
+#         "predicted_answer": predicted_answer,
+#         "reference_answer": answer
+#     })
+
+# print(f"Average Response Time: {total_response_time/total_questions:.2f} seconds")
+
+# ---- LangSmith Integration ----
+# Ensure you have set the environment variables:
+# LANGSMITH_API_KEY, LANGSMITH_ENDPOINT, LANGSMITH_PROJECT
+
+from langsmith import Client, wrappers
+from pydantic import BaseModel, Field
+
+client = Client()
+
+# Create a dataset in LangSmith
+dataset_name = "Sample datasetR1"
+description = "A sample dataset created from rag-mini-wikipedia QA"
+
+try:
+    dataset = client.create_dataset(
+        dataset_name=dataset_name,
+        description=description
+    )
+except Exception as e:
+    if "Dataset with this name already exists" in str(e):
+        # Retrieve the existing dataset by listing datasets and filtering by name.
+        datasets = client.list_datasets()
+        dataset = next(ds for ds in datasets if ds.name == dataset_name)
+        print(f"Dataset '{dataset_name}' already exists. Using the existing dataset.")
+    else:
+        raise e
+
+# Create examples in the dataset using questions and reference answers.
+examples = []
+for q, a in zip(ds_qa["question"][:total_questions], ds_qa["answer"][:total_questions]):
+    examples.append({
+        "inputs": {"question": q},
+        "outputs": {"answer": a}
+    })
+
+client.create_examples(dataset_id=dataset.id, examples=examples)
+
+# Define the target function that the evaluation will call.
+# This uses your query_rag function to generate a response.
+def target(inputs: dict) -> dict:
+    question = inputs["question"]
+    predicted_answer, _ = query_rag(question)
+    return {"response": predicted_answer}
+
+# Define a simple LLM-judge evaluator.
+# In this example, we prompt your ChatOllama model to judge if the predicted answer is conceptually similar to the reference.
+instructions = (
+    "Evaluate Student Answer against Ground Truth for conceptual similarity and classify true or false:\n"
+    "- False: No conceptual match or similarity\n"
+    "- True: Most or full conceptual match and similarity\n"
+    "Key criteria: The core concept should match, not necessarily the exact wording."
+)
+
+class Grade(BaseModel):
+    score: bool = Field(
+        description="Boolean indicating whether the response is accurate relative to the reference answer"
+    )
+
+def accuracy(outputs: dict, reference_outputs: dict) -> bool:
+    prompt = (
+        f"{instructions}\n\n"
+        f"Ground Truth answer: {reference_outputs['answer']}\n"
+        f"Student's Answer: {outputs['response']}\n"
+        "Respond with True or False."
+    )
+    # Use your ChatOllama LLM to invoke the prompt.
+    response = llm_model.invoke(prompt)
+    # If response is an AIMessage, access its content attribute.
+    if hasattr(response, "content"):
+        answer_str = response.content
+    else:
+        answer_str = str(response)
+    # Remove any content within <think>...</think> tags
+    answer_str = re.sub(r"<think>.*?</think>", "", answer_str, flags=re.DOTALL)
+    answer_str = answer_str.strip().lower()
+    return answer_str == "true"
+
+# Now, run the evaluation via LangSmith.
+experiment_results = client.evaluate(
+    target,
+    data=dataset.id,  # Use the dataset id from LangSmith.
+    evaluators=[accuracy],
+    experiment_prefix="first-eval-in-langsmithR1",
+    max_concurrency=2,
+)
+
+print("LangSmith Experiment Results:")
+print(experiment_results)
