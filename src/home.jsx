@@ -1,116 +1,78 @@
 import React, { useState } from "react";
+import FileUpload from "./pages/FileUpload";
+import CommandButtons from "./pages/CommandButtons";
+import QueryForm from "./pages/QueryForm";
+import ChangePrompt from "./pages/ChangePrompt";
+import QueryResponse from "./pages/QueryResponse";
+import "./output.css";
 
 const Home = () => {
-  const [query, setQuery] = useState("");
   const [response, setResponse] = useState(null);
-  const [file, setFile] = useState(null);
-
-  const handleFileUpload = async (e) => {
-    e.preventDefault();
-    if (!file) {
-      alert("Please select a file to upload.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const result = await res.json();
-      alert(result.message);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleInstallRequirements = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(
-        "http://localhost:5000/run/install-requirements",
-        {
-          method: "POST",
-        }
-      );
+      const res = await fetch("http://localhost:5000/run/install-requirements", {
+        method: "POST",
+      });
       const result = await res.json();
       alert(result.output || result.error);
-    } catch (error) {
-      console.error("Error installing requirements:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePopulateDatabase = async () => {
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/run/populate-database", {
         method: "POST",
       });
       const result = await res.json();
       alert(result.output || result.error);
-    } catch (error) {
-      console.error("Error populating database:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleQuery = async (e) => {
-    e.preventDefault();
+  const handleQuery = async (query) => {
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/run/query", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
       const result = await res.json();
       setResponse(result);
-    } catch (error) {
-      console.error("Error running query:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>Document Uploader and Command Runner</h1>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-6 space-y-6">
+      <h1 className="text-3xl font-bold text-blue-400">
+        Document Uploader & Command Runner
+      </h1>
 
-      <form onSubmit={handleFileUpload}>
-        <label htmlFor="file">Upload Document:</label>
-        <input
-          type="file"
-          id="file"
-          onChange={(e) => setFile(e.target.files[0])}
+      <div className="w-full max-w-2xl bg-gray-800 p-6 rounded-lg shadow-lg relative">
+        {loading && (
+          <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-green-500"></div>
+          </div>
+        )}
+
+        <FileUpload />
+        <CommandButtons
+          onInstall={handleInstallRequirements}
+          onPopulate={handlePopulateDatabase}
         />
-        <button type="submit">Upload</button>
-      </form>
-
-      <div>
-        <button onClick={handleInstallRequirements}>
-          Install Requirements
-        </button>
-        <button onClick={handlePopulateDatabase}>Populate Database</button>
+        <QueryForm onQuery={handleQuery} />
+        <ChangePrompt />
+        <QueryResponse response={response} />
       </div>
-
-      <form onSubmit={handleQuery}>
-        <label htmlFor="query">Enter Query:</label>
-        <input
-          type="text"
-          id="query"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button type="submit">Run Query</button>
-      </form>
-
-      {response && (
-        <div>
-          <h2>Query Response</h2>
-          <pre style={{ overflow: "auto", whiteSpace: "pre-wrap" }}>
-            {response.output || "No output available"}
-          </pre>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,49 +1,59 @@
+
 import React from "react";
-import '../output.css'
+import '../output.css';
+
+const highlightWords = (text, words) => {
+  if (!words || words.length === 0) return text;
+
+  const highlightColors = [
+    "bg-red-400", "bg-orange-400", "bg-yellow-300",
+    "bg-green-300", "bg-blue-300", "bg-purple-300"
+  ];
+
+  // Lowercase all words for matching
+  const lowerWords = words.map(w => w.toLowerCase());
+  const escaped = lowerWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escaped.join("|")})`, "gi");
+
+  return text.split(regex).map((part, i) => {
+    const low = part.toLowerCase();
+    const idx = lowerWords.indexOf(low);
+    if (idx !== -1) {
+      const colorClass = highlightColors[idx % highlightColors.length];
+      return (
+        <span
+          key={i}
+          className={`${colorClass} text-black font-semibold rounded px-1 mr-1`}
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+};
+
 const QueryResponse = ({ response }) => {
+  if (!response) return null;
+
+  const {
+    output = "No output available",
+    top_contributing_words = [],
+    // context = "" // Context remains unchanged and not highlighted
+  } = response;
+
   return (
-    response && (
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-4 text-white">
-        <h2 className="text-xl font-bold text-blue-400">Query Response</h2>
-        <pre className="bg-gray-900 p-4 rounded-md overflow-auto whitespace-pre-wrap border border-gray-700 text-green-400">
-          {response.output || "No output available"}
-        </pre>
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-4 text-white w-full">
+      <h2 className="text-xl font-bold text-blue-400">Query Response</h2>
+
+      {/* Highlighted Output */}
+      <div className="bg-gray-900 p-4 rounded-md mt-2 overflow-auto whitespace-pre-wrap text-green-400">
+        {highlightWords(output, top_contributing_words)} {/* Highlight only the answer */}
       </div>
-    )
+
+      
+    </div>
   );
 };
 
 export default QueryResponse;
-
-// import React from "react";
-
-// const QueryResponse = ({ response }) => {
-//   if (!response) return null;
-
-//   return (
-//     <div className="mt-6 bg-gray-900 p-4 rounded-lg shadow-lg text-white space-y-4">
-//       <h2 className="text-xl font-bold text-green-400">🧠 Answer:</h2>
-//       <p>{response.answer}</p>
-// {/* 
-//       {response.sources && response.sources.length > 0 && (
-//         <>
-//           <h3 className="text-lg font-semibold text-yellow-400">📚 Sources:</h3>
-//           <ul className="list-disc list-inside">
-//             {response.sources.map((src, i) => (
-//               <li key={i}>{src}</li>
-//             ))}
-//           </ul>
-//         </>
-//       )}
-
-//       {response.image_caption && (
-//         <>
-//           <h3 className="text-lg font-semibold text-blue-400">🖼️ Image Caption:</h3>
-//           <p>{response.image_caption}</p>
-//         </>
-//       )} */}
-//     </div>
-//   );
-// };
-
-// export default QueryResponse;
