@@ -56,7 +56,26 @@ const Home = () => {
       setLoading(false);
     }
   };
-
+  // const handleQuery = async ({ query, image }) => {
+  //   setLoading(true);
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("query", query);
+  //     if (image) formData.append("image", image);
+  
+  //     const res = await fetch("http://localhost:5000/run/query", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+  //     const result = await res.json();
+  //     setResponse(result);
+  //   } catch (error) {
+  //     console.error("Error running query:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-6 space-y-6">
       <h1 className="text-3xl font-bold text-blue-400">

@@ -76,6 +76,7 @@ def query_data():
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+
 @app.route('/run/update-prompt-template', methods=['POST'])
 def update_prompt_template():
     try:

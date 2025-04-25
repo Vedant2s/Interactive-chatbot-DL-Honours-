@@ -33,34 +33,6 @@ total_questions = 10  # Number of questions to evaluate
 local_dataset = []
 total_response_time = 0
 
-# # Evaluate the dataset locally
-# for idx, (question, answer) in enumerate(
-#     zip(ds_qa["question"][:total_questions], ds_qa["answer"][:total_questions])
-# ):
-#     start_time = time.time()
-    
-#     # Query RAG (ensure query_rag returns both response and retrieved contexts)
-#     predicted_answer, retrieved_contexts = query_rag(question)
-    
-#     end_time = time.time()
-#     response_time = end_time - start_time
-#     total_response_time += response_time
-
-#     print(f"{idx+1}/{total_questions} - Response Time: {response_time:.2f} seconds")
-
-#     # Store evaluation data locally
-#     local_dataset.append({
-#         "question": question,
-#         "retrieved_contexts": retrieved_contexts,
-#         "predicted_answer": predicted_answer,
-#         "reference_answer": answer
-#     })
-
-# print(f"Average Response Time: {total_response_time/total_questions:.2f} seconds")
-
-# ---- LangSmith Integration ----
-# Ensure you have set the environment variables:
-# LANGSMITH_API_KEY, LANGSMITH_ENDPOINT, LANGSMITH_PROJECT
 
 from langsmith import Client, wrappers
 from pydantic import BaseModel, Field
