@@ -42,7 +42,6 @@ class OllamaEmbeddingWrapper:
         self.base_url = base_url
 
     def embed_documents(self, texts):
-        # Generate embeddings for a list of texts
         embeddings = []
         for text in texts:
             embedding = self._get_embedding(text)
@@ -50,7 +49,6 @@ class OllamaEmbeddingWrapper:
         return embeddings
 
     def embed_query(self, text):
-        # Generate an embedding for a single query text
         return self._get_embedding(text)
 
     def _get_embedding(self, text):
@@ -61,8 +59,8 @@ class OllamaEmbeddingWrapper:
                 "prompt": text
             }
         )
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        return response.json().get('embedding')  # Ensure this is the correct field for the embedding vector
+        response.raise_for_status() 
+        return response.json().get('embedding')  
 
 def get_embedding_function():
     return OllamaEmbeddingWrapper()

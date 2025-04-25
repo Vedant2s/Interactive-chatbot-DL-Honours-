@@ -12,7 +12,6 @@ DATA_PATH = "data"
 
 def main():
     try:
-        # Check if the database should be cleared (using the --reset flag).
         parser = argparse.ArgumentParser()
         parser.add_argument("--reset", action="store_true", help="Reset the database.")
         args = parser.parse_args()
@@ -20,7 +19,6 @@ def main():
             print("Clearing Database")
             clear_database()
 
-        # Create (or update) the data store.
         documents = load_documents()
         chunks = split_documents(documents)
         add_to_chroma(chunks)
@@ -38,7 +36,7 @@ def load_documents():
 def split_documents(documents: list[Document]):
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000,
+            chunk_size=800,
             chunk_overlap=80,
             length_function=len,
             is_separator_regex=False,
@@ -50,16 +48,11 @@ def split_documents(documents: list[Document]):
 
 def add_to_chroma(chunks: list[Document]):
     try:
-        # Initialize the Chroma database with the embedding wrapper
         db = Chroma(
             persist_directory=CHROMA_PATH,
-            embedding_function=get_embedding_function()  # This now returns an embedding wrapper with the required methods
+            embedding_function=get_embedding_function()  
         )
-
-        # Calculate Page IDs
         chunks_with_ids = calculate_chunk_ids(chunks)
-
-        # Add only new documents
         existing_items = db.get(include=[])
         existing_ids = set(existing_items["ids"])
         print(f"Number of existing documents in DB: {len(existing_ids)}")
@@ -69,8 +62,7 @@ def add_to_chroma(chunks: list[Document]):
         if new_chunks:
             print(f"Adding new documents: {len(new_chunks)}")
             new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
-            db.add_documents(new_chunks, ids=new_chunk_ids)  # Embeddings handled by GoogleEmbeddingWrapper
-            # db.persist()
+            db.add_documents(new_chunks, ids=new_chunk_ids)  
         else:
             print("No new documents to add")
     except Exception as e:
@@ -87,18 +79,12 @@ def calculate_chunk_ids(chunks):
             source = chunk.metadata.get("source")
             page = chunk.metadata.get("page")
             current_page_id = f"{source}:{page}"
-
-            # If the page ID is the same as the last one, increment the index.
             if current_page_id == last_page_id:
                 current_chunk_index += 1
             else:
                 current_chunk_index = 0
-
-            # Calculate the chunk ID.
             chunk_id = f"{current_page_id}:{current_chunk_index}"
             last_page_id = current_page_id
-
-            # Add it to the page meta-data.
             chunk.metadata["id"] = chunk_id
 
         return chunks

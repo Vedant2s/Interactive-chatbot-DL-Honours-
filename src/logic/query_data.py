@@ -47,47 +47,35 @@ from rank_bm25 import BM25Okapi
 from typing import List
 
 def query_rag(query_text: str):
-    # Prepare the database and embedding function
     embedding_function = get_embedding_function()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
     
-    # Get all documents from ChromaDB for BM25
-    all_docs = db.get()['documents']  # List of all document texts
-    tokenized_docs = [doc.split() for doc in all_docs]  # BM25 requires tokenized docs
+    all_docs = db.get()['documents']  
+    tokenized_docs = [doc.split() for doc in all_docs]  
     
-    # Initialize BM25 and calculate scores
     bm25 = BM25Okapi(tokenized_docs)
     tokenized_query = query_text.split()
     bm25_scores = bm25.get_scores(tokenized_query)
     
-    # Get semantic search results with scores from ChromaDB
     semantic_results = db.similarity_search_with_score(query_text, k=len(all_docs))
     
-    # Normalize scores and combine (BM25 + Cosine Similarity)
     combined_results = []
     for i, (doc, cos_score) in enumerate(semantic_results):
-        # Normalize scores to 0-1 range
         norm_cos = (cos_score + 1) / 2  # Cosine similarity ranges from -1 to 1
         norm_bm25 = (bm25_scores[i] - min(bm25_scores)) / (max(bm25_scores) - min(bm25_scores) + 1e-9)
-        
-        # Weighted combination (adjust weights as needed)
         combined_score = 0.9 * norm_cos + 0.1 * norm_bm25
         combined_results.append((doc, combined_score))
     
-    # Sort by combined score and take top 2
     combined_results.sort(key=lambda x: x[1], reverse=True)
     top_results = combined_results[:5]  # Top 5 results
     
-    # Format the context for the prompt
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in top_results])
     retrieved_contexts = [doc.page_content for doc, _score in top_results]
     
-    # Generate prompt and get response
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query_text)
     structured_response = get_structured_deepseek_response(prompt, top_results, context_text)
     
-    # Format output
     formatted_response = f"{structured_response.answer}\n\nSources: {structured_response.sources}"
     print(formatted_response)
     print("Top Contributing Words:", structured_response.top_contributing_words)
