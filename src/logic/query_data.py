@@ -41,7 +41,7 @@ def main():
     args = parser.parse_args()
     query_text = args.query_text
     query_rag(query_text)
-    print(json.dumps(structured_response))
+    # print(json.dumps(structured_response))
 
 from rank_bm25 import BM25Okapi
 from typing import List
