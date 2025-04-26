@@ -1,10 +1,18 @@
-PyPDF2 # pip install pypdf
-langchain # pip install langchain
-chromadb # Vector storage # pip install chromadb
-pytest
+Flask
+flask-cors
+werkzeug
+datasets
+langchain
+langchain-community
+langchain-text-splitters
+langchain-chroma
+chromadb
+PyPDF2
 boto3
-#pip install -q -U google-generativeai
-langchain_community
-langchain_text_splitters
-google-generativeai
-langchain_chroma
+requests
+shap
+torch
+scikit-learn
+rank-bm25
+pydantic
+numpy
